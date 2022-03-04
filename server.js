@@ -121,3 +121,110 @@ fastify.listen(process.env.PORT, '0.0.0.0', function(err, address) {
   console.log(`Your app is listening on ${address}`);
   fastify.log.info(`server listening on ${address}`);
 });
+
+
+const fs = require('fs')
+
+
+class Contenedor {
+    constructor(fileName) {
+        this.fileName = fileName        
+    }
+
+    async save(object) {
+        try {            
+            let content = await fs.promises.readFile(this.fileName,'utf-8');                                    
+            //se distingue si el archivo está vacío o contiene datos. 
+            if (!content) content = [];                
+            else {
+                content = JSON.parse(content)                
+            }            
+            object.id = content.length + 1
+            content.push(object)
+            await fs.promises.writeFile(this.fileName, JSON.stringify(content, null, 2))
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                console.log ('El archivo o directorio no existe')
+            } else {
+                console.log(err);
+            }            
+        }
+        return object.id
+    }
+
+ 
+    async getById(id) {
+        try {
+            const content = await fs.promises.readFile(this.fileName, 'utf8');
+            if (!content) console.log ('No existen datos en el archivo')
+            else {            
+            const contentParse = JSON.parse(content)                        
+            const result = contentParse.filter(item => item.id == id)            
+            return result
+            }
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                console.log ('El archivo o directorio no existe')
+            } else {
+                console.log(err);
+            }            
+        }
+    }
+
+    async getAll() {
+        try {
+            const content = await fs.promises.readFile(this.fileName, 'utf8');            
+            if (!content) console.log ('No existen datos en el archivo')
+            else {
+                const contentParse = JSON.parse(content)
+                return contentParse 
+            }              
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                console.log ('El archivo o directorio no existe')
+            } else {
+                console.log(err);
+            }            
+        }
+    }
+
+    //Elimina del archivo el objeto con el id buscado
+    async deleteById(id) {
+        try {
+            const content = await fs.promises.readFile(this.fileName, 'utf8');
+            if (!content) console.log ('No existen datos en el archivo')
+            else {
+                const contentParse = JSON.parse(content)                
+                const result = contentParse.filter((item) => item.id !== id);
+                await fs.promises.writeFile(this.fileName, JSON.stringify(result, null, 2))
+                console.log('Producto eliminado')                    
+            }
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                console.log ('El archivo o directorio no existe')
+            } else {
+                console.log(err);
+            }            
+        }
+    }
+
+
+    async deleteAll() {
+        try {
+            const content = await fs.promises.readFile(this.fileName, 'utf8');
+            if (!content) console.log ('No existen datos en el archivo')
+            else {
+            await fs.promises.writeFile(this.fileName, '')
+            console.log('Los productos han sido eliminados.')
+            }
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                console.log ('El archivo o directorio no existe')
+            } else {
+                console.log(err);
+            }              
+        }
+    }     
+    
+}
+
